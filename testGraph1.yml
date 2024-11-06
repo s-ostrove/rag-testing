@@ -250,9 +250,24 @@ size:
 name: "Base relations"
 
 pers2pers:
-  - sibling_of
-  - parent_of
-  - spouse_of
+  - sibling_of:
+      recip: sibling_of
+      share: child_of # Must stand in the child_of relation with the same set of nodes
+      not: spouse_of, parent_of
+      max: 5
+  - parent_of:
+      recip: child_of
+      not: spouse_of, sibling_of, child_of, friends_with, rival_of, dislikes
+      max: 5
+  - child_of:
+      recip: parent_of
+      not: spouse_of, sibling_of, parent_of, friends_with, dislikes
+      max: 2
+  - spouse_of:
+      recip: spouse_of
+      share: parent_of
+      not: sibling_of, parent_of, child_of
+      max: 1
   - friends_with
   - likes
   - dislikes
@@ -278,24 +293,22 @@ pers2plant:
   - likes
   - grows
 
-pers2food:
-  - 
-
-pers2drink:
-pers2prof:
-pers2nat:
-pers2personality:
-pers2state:
-pet2pers:
-pet2pet:
-pet2place:
-pet2plant:
-pet2prod:
-pet2spec:
-pet2char:
-work2geo:
-study2geo:
-life2geo:
-geo2geo:
-plant2geo:
+# pers2food:
+# pers2drink:
+# pers2prof:
+# pers2nat:
+# pers2personality:
+# pers2state:
+# pet2pers:
+# pet2pet:
+# pet2place:
+# pet2plant:
+# pet2prod:
+# pet2spec:
+# pet2char:
+# work2geo:
+# study2geo:
+# life2geo:
+# geo2geo:
+# plant2geo:
 ---
