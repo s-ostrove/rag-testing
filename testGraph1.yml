@@ -1,0 +1,301 @@
+---
+name: "Types"
+
+nodeTypes:
+  - person
+  - pet
+  - workPlace
+  - studyPlace
+  - lifePlace
+  - geoPlace
+  - plant
+  - food
+  - drink
+  - profession
+  - nationality
+  - personality
+  - state
+  - species
+  - character
+  - size
+
+relationTypes:
+  - pers2pers
+  - pers2pet
+  - pers2place
+  - pers2plant
+  - pers2food
+  - pers2drink
+  - pers2prof
+  - pers2nat
+  - pers2personality
+  - pers2state
+  - pet2pers
+  - pet2pet
+  - pet2place
+  - pet2plant
+  - pet2spec
+  - pet2char
+  - work2geo
+  - study2geo
+  - life2geo
+  - geo2geo
+  - plant2geo
+---
+
+---
+name: "Nodes"
+
+person:
+  - Bob
+  - Raffaella
+  - Dani
+  - Hannah
+  - Zoltan
+  - Tamar
+  - Will
+  - Stellan
+  - Kolin
+  - Samuel
+  - Shulamit
+  - Michael
+  - Ariela
+  - Arthur
+  - Carol
+  - Philip
+  - Tagora
+  - Miriam
+  - Susie
+  - Ernie
+
+pet:
+  - Rosie
+  - Josie
+  - Mango
+  - Moyo
+  - Daisy
+  - Robin
+  - Bella
+  - Max
+  - Luna
+  - Charlie
+
+workPlace:
+  - General Motors
+  - The Walt Disney Company
+  - Johnson & Johnson
+  - Procter & Gamble
+  - Coca-Cola
+  - JPMorgan Chase
+  - Hilton Worldwide
+  - Nike
+  - Pfizer
+  - American Airlines
+
+studyPlace:
+  - Harvard University
+  - Yale University
+  - Stanford University
+  - Massachusetts Institute of Technology
+  - Princeton University
+  - University of Chicago
+  - Columbia University
+  - University of California, Berkeley
+  - California Institute of Technology
+  - University of Oxford
+
+lifePlace:
+  - The French Laundry
+  - Shake Shack
+  - Le Bernardin
+  - Whole Foods Market
+  - Trader Joe's
+  - Momofuku Noodle Bar
+  - Nobu
+  - Eataly
+  - Blue Bottle Coffee
+  - Sephora
+
+geoPlace:
+  - New York
+  - Tokyo
+  - London
+  - Paris
+  - Sydney
+  - Beijing
+  - Istanbul
+  - Rio de Janeiro
+  - Cape Town
+  - Toronto
+
+plant:
+  - grass
+  - trees
+  - ferns
+  - flowers
+  - cacti
+  - shrubs
+  - succulents
+
+food:
+  - spaghetti carbonara
+  - chicken tikka masala
+  - sushi
+  - tacos
+  - pad thai
+  - beef stroganoff
+  - paella
+  - lasagna
+  - ratatouille
+  - moussaka
+
+drink:
+  - coffee
+  - tea
+  - orange juice
+  - mojitos
+  - margaritas
+  - Coca-Cola
+  - water
+  - banana smoothies
+  - wine
+  - lemonade
+
+profession:
+  - teacher
+  - nurse
+  - electrician
+  - plumber
+  - carpenter
+  - mechanic
+  - cashier
+  - welder
+  - bus driver
+  - construction worker
+
+nationality:
+  - American
+  - Canadian
+  - Mexican
+  - French
+  - German
+  - Italian
+  - Chinese
+  - Japanese
+  - Indian
+  - Brazilian
+
+personality:
+  - introverted
+  - extroverted
+  - charismatic
+  - kind
+  - compassionate
+  - optimistic
+  - pessimistic
+  - adventurous
+  - creative
+  - funny
+
+state:
+  - happy
+  - sad
+  - angry
+  - anxious
+  - joyful
+  - confused
+  - excited
+  - calm
+  - frustrated
+  - relaxed
+
+species:
+  - dog
+  - cat
+  - rabbit
+  - hamster
+  - parrot
+  - goldfish
+  - guinea pig
+  - turtle
+  - snake
+  - ferret
+
+character:
+  - playful
+  - loyal
+  - curious
+  - timid
+  - friendly
+  - aggressive
+  - lazy
+  - energetic
+  - protective
+  - affectionate
+
+size:
+  - tiny
+  - small
+  - medium
+  - large
+  - huge
+  - petite
+  - compact
+  - spacious
+  - gigantic
+  - enormous
+---
+
+---
+name: "Base relations"
+
+pers2pers:
+  - sibling_of
+  - parent_of
+  - spouse_of
+  - friends_with
+  - likes
+  - dislikes
+  - mentors
+  - rival_of
+
+pers2pet:
+- owns
+- grooms
+- loves
+- dislikes
+
+pers2place:
+  - works_at
+  - studies_at
+  - shops_at
+  - eats_at
+  - owns
+
+pers2plant:
+  - has
+  - wants
+  - likes
+  - grows
+
+pers2food:
+  - 
+
+pers2drink:
+pers2prof:
+pers2nat:
+pers2personality:
+pers2state:
+pet2pers:
+pet2pet:
+pet2place:
+pet2plant:
+pet2prod:
+pet2spec:
+pet2char:
+work2geo:
+study2geo:
+life2geo:
+geo2geo:
+plant2geo:
+---
