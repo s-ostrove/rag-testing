@@ -1,6 +1,5 @@
----
-name: "Types"
-
+%YAML 1.2
+--- # Types
 nodeTypes:
   - person
   - pet
@@ -42,9 +41,7 @@ relationTypes:
   - geo2geo
   - plant2geo
 
----
-name: "Nodes"
-
+--- # Nodes
 person:
   - Bob
   - Raffaella
@@ -244,37 +241,35 @@ size:
   - gigantic
   - enormous
 
----
-name: "Base relations"
-
+--- #Base relations
 pers2pers:
   - sibling_of:
-    - recip: sibling_of
-    - share: child_of # Must stand in the child_of relation with the same set of nodes
-    - not: spouse_of, parent_of
-    - max: 5
-    - gen: 0
+    recip: sibling_of
+    share: child_of # Must stand in the child_of relation with the same set of nodes
+    not: spouse_of, parent_of
+    max: 5
+    gen: 0
   - parent_of:
-    - recip: child_of
-    - not: spouse_of, sibling_of, child_of, friends_with, rival_of, dislikes
-    - max: 5
-    - gen: 1
+    recip: child_of
+    not: spouse_of, sibling_of, child_of, friends_with, rival_of, dislikes
+    max: 5
+    gen: 1
   - child_of:
-    - recip: parent_of
-    - not: spouse_of, sibling_of, parent_of, friends_with, dislikes
-    - max: 2
-    - gen: -1
+    recip: parent_of
+    not: spouse_of, sibling_of, parent_of, friends_with, dislikes
+    max: 2
+    gen: -1
   - spouse_of:
-    - recip: spouse_of
-    - share: parent_of
-    - not: sibling_of, parent_of, child_of
-    - max: 1
-    - gen: 0
-  - friends_with
-  - likes
-  - dislikes
-  - mentors
-  - rival_of
+    recip: spouse_of
+    share: parent_of
+    not: sibling_of, parent_of, child_of
+    max: 1
+    gen: 0
+  - friends_with:
+  - likes:
+  - dislikes:
+  - mentors:
+  - rival_of:
 
 pers2pet:
 - owns
