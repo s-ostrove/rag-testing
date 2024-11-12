@@ -1,7 +1,8 @@
 %YAML 1.2
 --- # Types
 nodeTypes:
-  - person
+  - person:
+    properties: generation, 
   - pet
   - workPlace
   - studyPlace
@@ -246,17 +247,17 @@ pers2pers:
   - sibling_of:
     recip: sibling_of
     share: child_of # Must stand in the child_of relation with the same set of nodes
-    not: spouse_of, parent_of
-    max: 5
+    not: spouse_of
+    max: 4
     gen: 0
   - parent_of:
     recip: child_of
-    not: spouse_of, sibling_of, child_of, friends_with, rival_of, dislikes
+    not: friends_with, rival_of, dislikes
     max: 5
     gen: 1
   - child_of:
     recip: parent_of
-    not: spouse_of, sibling_of, parent_of, friends_with, dislikes
+    not: friends_with, dislikes
     max: 2
     gen: -1
   - spouse_of:
