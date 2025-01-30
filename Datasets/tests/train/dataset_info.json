@@ -1,0 +1,38 @@
+{
+  "builder_name": "csv",
+  "citation": "",
+  "config_name": "default",
+  "dataset_name": "csv",
+  "dataset_size": 3292,
+  "description": "",
+  "download_checksums": {
+    "/Users/Samuel/Desktop/SAMUEL MacBook/Samuel Yale/Courses/Thesis/Testing/claritygraph.csv": {
+      "num_bytes": 3028,
+      "checksum": null
+    }
+  },
+  "download_size": 3028,
+  "features": {
+    "John is the spouse of Mary.": {
+      "dtype": "string",
+      "_type": "Value"
+    }
+  },
+  "homepage": "",
+  "license": "",
+  "size_in_bytes": 6320,
+  "splits": {
+    "train": {
+      "name": "train",
+      "num_bytes": 3292,
+      "num_examples": 97,
+      "dataset_name": "csv"
+    }
+  },
+  "version": {
+    "version_str": "0.0.0",
+    "major": 0,
+    "minor": 0,
+    "patch": 0
+  }
+}
