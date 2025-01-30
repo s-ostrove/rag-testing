@@ -1,0 +1,6 @@
+Jim is the father of Jane
+Jack is the father of Jim
+John is the father of Jack
+Jill is the mother of John
+Jared is the brother of Jill
+Jigme descends from Jared

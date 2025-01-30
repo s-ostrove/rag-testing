@@ -1,0 +1,7 @@
+%YAML 1.2
+---
+test1:
+  - type: string
+  - name: group
+  - specs:
+    - share: good
