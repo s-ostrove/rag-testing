@@ -1,12 +1,42 @@
-from transformers import RagTokenizer, RagRetriever, RagSequenceForGeneration 
- 
-tokenizer = RagTokenizer.from_pretrained("facebook/rag-sequence-nq") 
-retriever = RagRetriever.from_pretrained("facebook/rag-sequence-nq", index_name="exact", use_dummy_dataset=True) 
-model = RagSequenceForGeneration.from_pretrained("facebook/rag-sequence-nq", retriever=retriever) 
- 
-input_dict = tokenizer.prepare_seq2seq_batch("how many countries are in europe", return_tensors="pt") 
+""" from transformers import RagTokenizer, RagRetriever, RagTokenForGeneration
+
+tokenizer = RagTokenizer.from_pretrained("facebook/rag-token-nq")
+retriever = RagRetriever.from_pretrained("facebook/rag-token-nq", index_name="exact", use_dummy_dataset=True)
+model = RagTokenForGeneration.from_pretrained("facebook/rag-token-nq", retriever=retriever)
+
+input_dict = tokenizer.prepare_seq2seq_batch("who holds the record in 100m freestyle", return_tensors="pt") 
 
 generated = model.generate(input_ids=input_dict["input_ids"]) 
-print(tokenizer.batch_decode(generated, skip_special_tokens=True)[0]) 
+print(tokenizer.batch_decode(generated, skip_special_tokens=True)[0])  """
 
-# should give 54 => google says either 44 or 51
+""" from transformers import RagTokenizer, RagRetriever, RagSequenceForGeneration
+
+# Load the tokenizers and models
+tokenizer = RagTokenizer.from_pretrained("facebook/rag-token-nq")
+question_encoder_tokenizer = tokenizer.question_encoder
+generator_tokenizer = tokenizer.generator
+
+# Initialize the retriever
+retriever = RagRetriever.from_pretrained("facebook/rag-token-nq", index_name="exact", passages_path="path/to/passages", use_dummy_dataset=True)
+
+# Load the model 
+model = RagSequenceForGeneration.from_pretrained("facebook/rag-token-nq", retriever=retriever)
+
+# Example usage
+input_ids = question_encoder_tokenizer("Your question here", return_tensors="pt").input_ids
+generated_ids = model.generate(input_ids=input_ids)
+output = generator_tokenizer.batch_decode(generated_ids, skip_special_tokens=True) """
+
+from transformers import AutoTokenizer, RagRetriever, RagModel
+
+tokenizer = AutoTokenizer.from_pretrained("facebook/rag-token-base")
+retriever = RagRetriever.from_pretrained("facebook/rag-token-base", index_name='exact', use_dummy_dataset=True)
+
+
+model = RagModel.from_pretrained("facebook/rag-token-base", retriever=retriever)
+
+inputs = tokenizer("How many people live in Paris?", return_tensors='pt')
+
+outputs = model(input_ids = inputs["input_ids"])
+
+# train on loss

@@ -2,3 +2,4 @@
 /Mid-Year*
 /GraphBuilder/__pycache__/*
 /GraphBuilder/.*
+.DS_Store
