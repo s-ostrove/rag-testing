@@ -12,7 +12,8 @@ from datasets import Features, Sequence, Value, load_dataset
 
 from transformers import (
     DPRContextEncoder,
-    DPRContextEncoderTokenizerFast,
+    DPRContextEncoderTokenizer,
+    DPRQuestionEncoderTokenizer,
     HfArgumentParser,
     RagRetriever,
     RagSequenceForGeneration,
@@ -26,13 +27,13 @@ logger = logging.getLogger(__name__)
 torch.set_grad_enabled(False)
 device = "cuda" if torch.cuda.is_available() else "cpu"
 
-ctx_encoder = DPRContextEncoder.from_pretrained(dpr_ctx_encoder_model_name).to(device=device)
-ctx_tokenizer = DPRContextEncoderTokenizerFast.from_pretrained(dpr_ctx_encoder_model_name)
+ctx_encoder = DPRContextEncoder.from_pretrained(dpr_ctx_encoder_model_name)
+ctx_tokenizer = DPRQuestionEncoderTokenizer.from_pretrained(dpr_ctx_encoder_model_name)
 new_features = Features(
     {"text": Value("string"), "title": Value("string"), "embeddings": Sequence(Value("float32"))}
 )  # optional, save as float32 instead of float64 to save space
 
-def embed(documents: dict, ctx_encoder: DPRContextEncoder, ctx_tokenizer: DPRContextEncoderTokenizerFast) -> dict:
+def embed(documents: dict, ctx_encoder: DPRContextEncoder, ctx_tokenizer: DPRContextEncoderTokenizer) -> dict:
     """Compute the DPR embeddings of document passages"""
     input_ids = ctx_tokenizer(
         documents["title"], documents["text"], truncation=True, padding="longest", return_tensors="pt"
@@ -47,6 +48,5 @@ dataset = load_dataset(
 
 def testembed(title, text):
     input_ids = ctx_tokenizer(title, text, truncation=True, padding='longest', return_tensors='pt', max_length=30)['input_ids']
-    return ctx_encoder(input_ids.to(device=device), return_dict=True).pooler_output
-
-testembed('hello', 'this is my daughter')
+    # return ctx_encoder(input_ids, return_dict=True)#.pooler_output
+    return input_ids
