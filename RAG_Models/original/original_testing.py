@@ -1,82 +1,232 @@
-""" from transformers import RagTokenizer, RagRetriever, RagTokenForGeneration
-
-tokenizer = RagTokenizer.from_pretrained("facebook/rag-token-nq")
-retriever = RagRetriever.from_pretrained("facebook/rag-token-nq", index_name="exact", use_dummy_dataset=True)
-model = RagTokenForGeneration.from_pretrained("facebook/rag-token-nq", retriever=retriever)
-
-input_dict = tokenizer.prepare_seq2seq_batch("who holds the record in 100m freestyle", return_tensors="pt") 
-
-generated = model.generate(input_ids=input_dict["input_ids"]) 
-print(tokenizer.batch_decode(generated, skip_special_tokens=True)[0])  """
-
-""" from transformers import RagTokenizer, RagRetriever, RagSequenceForGeneration
-
-# Load the tokenizers and models
-tokenizer = RagTokenizer.from_pretrained("facebook/rag-token-nq")
-question_encoder_tokenizer = tokenizer.question_encoder
-generator_tokenizer = tokenizer.generator
-
-# Initialize the retriever
-retriever = RagRetriever.from_pretrained("facebook/rag-token-nq", index_name="exact", passages_path="path/to/passages", use_dummy_dataset=True)
-
-# Load the model 
-model = RagSequenceForGeneration.from_pretrained("facebook/rag-token-nq", retriever=retriever)
-
-# Example usage
-input_ids = question_encoder_tokenizer("Your question here", return_tensors="pt").input_ids
-generated_ids = model.generate(input_ids=input_ids)
-output = generator_tokenizer.batch_decode(generated_ids, skip_special_tokens=True) """
-
-""" from transformers import AutoTokenizer, RagRetriever, RagModel
-
-tokenizer = AutoTokenizer.from_pretrained("facebook/rag-token-base")
-retriever = RagRetriever.from_pretrained("facebook/rag-token-base", index_name='exact', use_dummy_dataset=True)
-
-
-model = RagModel.from_pretrained("facebook/rag-token-base", retriever=retriever)
-
-inputs = tokenizer("How many people live in Paris?", return_tensors='pt')
-
-outputs = model(input_ids = inputs["input_ids"])
-
-# train on loss """
-
-""" from transformers import RagTokenizer, RagRetriever, RagTokenForGeneration
-
-tokenizer = RagTokenizer.from_pretrained("facebook/rag-token-nq")
-retriever = RagRetriever.from_pretrained("facebook/rag-token-nq", index_name="exact", use_dummy_dataset=True)
-model = RagTokenForGeneration.from_pretrained("facebook/rag-token-nq", retriever=retriever)
-
-input_dict = tokenizer.prepare_seq2seq_batch("who holds the record in 100m freestyle", return_tensors="pt") 
-
-generated = model.generate(input_ids=input_dict["input_ids"]) 
-print(tokenizer.batch_decode(generated, skip_special_tokens=True)[0]) """
-
-from transformers import AutoTokenizer, RagRetriever, RagModel, AutoModel
+""" from datasets import Dataset
+from transformers import AutoTokenizer, RagRetriever, RagModel
 import torch
 
-try:
-    # Initialize the tokenizer
-    tokenizer = AutoTokenizer.from_pretrained("facebook/rag-token-base")
-    print("Tokenizer loaded successfully.")
+dataset = Dataset.load_from_disk("/Users/Samuel/Desktop/SAMUEL MacBook/Samuel Yale/Courses/Thesis/Datasets/tests/train")
 
-    # Initialize the retriever with a real or custom dataset if possible
-    retriever = RagRetriever.from_pretrained("facebook/rag-token-base", index_name='exact', use_dummy_dataset = True)
-    print("Retriever loaded successfully.")
+tokenizer = AutoTokenizer.from_pretrained("facebook/rag-token-base")
 
-    # Initialize the model
-    model = AutoModel.from_pretrained("facebook/rag-token-base", retriever=retriever)
-    print("Model loaded successfully.")
-    
-    # Example input
-    query = "How many people live in Paris?"
-    inputs = tokenizer(query, return_tensors='pt')
-    print(f"Input tokenized: {inputs}")
+retriever = RagRetriever.from_pretrained("facebook/rag-token-base", dataset=dataset, use_dummy_dataset=False)
 
-    # Generate output
-    with torch.no_grad():
-        outputs = model(input_ids=inputs["input_ids"])
-    print(f"Model output: {outputs}")
+retriever.index.index_data(dataset)
+                           
+model = RagModel.from_pretrained("facebook/rag-token-base", retriever=retriever)
 
-except Exception as e:
-    print(f"An error occurred: {e}")
+query = "Who is the child of Henry?"
+inputs = tokenizer(query, return_tensors='pt')
+
+with torch.no_grad():
+    outputs = model(input_ids=inputs["input_ids"]) """
+
+
+# From https://github.com/huggingface/transformers/blob/main/examples/research_projects/rag/use_own_knowledge_dataset.py
+
+import logging
+import os
+from dataclasses import dataclass, field
+from functools import partial
+from pathlib import Path
+from tempfile import TemporaryDirectory
+from typing import List, Optional
+
+import faiss
+import torch
+from datasets import Features, Sequence, Value, load_dataset
+
+from transformers import (
+    DPRContextEncoder,
+    DPRContextEncoderTokenizerFast,
+    HfArgumentParser,
+    RagRetriever,
+    RagSequenceForGeneration,
+    RagTokenizer,
+)
+
+
+logger = logging.getLogger(__name__)
+torch.set_grad_enabled(False)
+device = "cuda" if torch.cuda.is_available() else "cpu"
+
+
+def split_text(text: str, n=100, character=" ") -> List[str]:
+    """Split the text every ``n``-th occurrence of ``character``"""
+    text = text.split(character)
+    return [character.join(text[i : i + n]).strip() for i in range(0, len(text), n)]
+
+
+def split_documents(documents: dict) -> dict:
+    """Split documents into passages"""
+    titles, texts = [], []
+    for title, text in zip(documents["title"], documents["text"]):
+        if text is not None:
+            for passage in split_text(text):
+                titles.append(title if title is not None else "")
+                texts.append(passage)
+    return {"title": titles, "text": texts}
+
+
+def embed(documents: dict, ctx_encoder: DPRContextEncoder, ctx_tokenizer: DPRContextEncoderTokenizerFast) -> dict:
+    """Compute the DPR embeddings of document passages"""
+    input_ids = ctx_tokenizer(
+        documents["title"], documents["text"], truncation=True, padding="longest", return_tensors="pt", max_length=100
+    )["input_ids"]
+    embeddings = ctx_encoder(input_ids.to(device=device), return_dict=True).pooler_output
+    return {"embeddings": embeddings.detach().cpu().numpy()}
+
+
+def main(
+    rag_example_args: "RagExampleArguments",
+    processing_args: "ProcessingArguments",
+    index_hnsw_args: "IndexHnswArguments",
+):
+    ######################################
+    logger.info("Step 1 - Create the dataset")
+    ######################################
+
+    # The dataset needed for RAG must have three columns:
+    # - title (string): title of the document
+    # - text (string): text of a passage of the document
+    # - embeddings (array of dimension d): DPR representation of the passage
+
+    # Let's say you have documents in tab-separated csv files with columns "title" and "text"
+    assert os.path.isfile(rag_example_args.csv_path), "Please provide a valid path to a csv file"
+
+    # You can load a Dataset object this way
+    dataset = load_dataset(
+        "csv", data_files=[rag_example_args.csv_path], split="train", delimiter=",", column_names=["title", "text"]
+    )
+
+    # More info about loading csv files in the documentation: https://huggingface.co/docs/datasets/loading_datasets?highlight=csv#csv-files
+    logger.info("Step 1.2 - Split the dataset")
+    # Then split the documents into passages of 100 words
+    dataset = dataset.map(split_documents, batched=True, num_proc=processing_args.num_proc)
+    logger.info("Step 1.3 - Compute the embeddings")
+    # And compute the embeddings
+    ctx_encoder = DPRContextEncoder.from_pretrained(rag_example_args.dpr_ctx_encoder_model_name).to(device=device)
+    ctx_tokenizer = DPRContextEncoderTokenizerFast.from_pretrained(rag_example_args.dpr_ctx_encoder_model_name)
+    new_features = Features(
+        {"text": Value("string"), "title": Value("string"), "embeddings": Sequence(Value("float32"))}
+    )  # optional, save as float32 instead of float64 to save space
+    logger.info("Step 1.4 - Add the embeddings")
+    dataset = dataset.map(
+        partial(embed, ctx_encoder=ctx_encoder, ctx_tokenizer=ctx_tokenizer),
+        batched=True,
+        batch_size=processing_args.batch_size,
+        features=new_features,
+    )
+    logger.info("Step 1.5 - Save the dataset")
+    # And finally save your dataset
+    passages_path = os.path.join(rag_example_args.output_dir, "my_knowledge_dataset_0")
+    dataset.save_to_disk(passages_path)
+    # from datasets import load_from_disk
+    # dataset = load_from_disk(passages_path)  # to reload the dataset
+
+    ######################################
+    logger.info("Step 2 - Index the dataset")
+    ######################################
+
+    # Let's use the Faiss implementation of HNSW for fast approximate nearest neighbor search
+    index = faiss.IndexHNSWFlat(index_hnsw_args.d, index_hnsw_args.m, faiss.METRIC_INNER_PRODUCT)
+    dataset.add_faiss_index("embeddings", custom_index=index)
+
+    # And save the index
+    index_path = os.path.join(rag_example_args.output_dir, "my_knowledge_dataset_0_hnsw_index.faiss")
+    dataset.get_index("embeddings").save(index_path)
+    # dataset.load_faiss_index("embeddings", index_path)  # to reload the index
+
+    ######################################
+    logger.info("Step 3 - Load RAG")
+    ######################################
+
+    # Easy way to load the model
+    retriever = RagRetriever.from_pretrained(
+        rag_example_args.rag_model_name, index_name="custom", indexed_dataset=dataset
+    )
+    model = RagSequenceForGeneration.from_pretrained(rag_example_args.rag_model_name, retriever=retriever)
+    tokenizer = RagTokenizer.from_pretrained(rag_example_args.rag_model_name)
+
+    # For distributed fine-tuning you'll need to provide the paths instead, as the dataset and the index are loaded separately.
+    # retriever = RagRetriever.from_pretrained(rag_model_name, index_name="custom", passages_path=passages_path, index_path=index_path)
+
+    ######################################
+    logger.info("Step 4 - Have fun")
+    ######################################
+
+    question = rag_example_args.question or "Who is the parent of Robert?"
+    input_ids = tokenizer.question_encoder(question, return_tensors="pt")["input_ids"]
+    generated = model.generate(input_ids)
+    generated_string = tokenizer.batch_decode(generated, skip_special_tokens=True)[0]
+    logger.info("Q: " + question)
+    logger.info("A: " + generated_string)
+
+
+@dataclass
+class RagExampleArguments:
+    csv_path: str = field(
+        default="/Users/Samuel/Desktop/SAMUEL MacBook/Samuel Yale/Courses/Thesis/Testing/claritygraph.csv",
+        metadata={"help": "Path to a tab-separated csv file with columns 'title' and 'text'"},
+    )
+    question: Optional[str] = field(
+        default=None,
+        metadata={"help": "Question that is passed as input to RAG. Default is 'What does Moses' rod turn into ?'."},
+    )
+    rag_model_name: str = field(
+        default="facebook/rag-sequence-nq",
+        metadata={"help": "The RAG model to use. Either 'facebook/rag-sequence-nq' or 'facebook/rag-token-nq'"},
+    )
+    dpr_ctx_encoder_model_name: str = field(
+        default="facebook/dpr-ctx_encoder-multiset-base",
+        metadata={
+            "help": (
+                "The DPR context encoder model to use. Either 'facebook/dpr-ctx_encoder-single-nq-base' or"
+                " 'facebook/dpr-ctx_encoder-multiset-base'"
+            )
+        },
+    )
+    output_dir: Optional[str] = field(
+        default="/Users/Samuel/Desktop/SAMUEL MacBook/Samuel Yale/Courses/Thesis/Datasets",
+        metadata={"help": "Path to a directory where the dataset passages and the index will be saved"},
+    )
+
+
+@dataclass
+class ProcessingArguments:
+    num_proc: Optional[int] = field(
+        default=None,
+        metadata={
+            "help": "The number of processes to use to split the documents into passages. Default is single process."
+        },
+    )
+    batch_size: int = field(
+        default=16,
+        metadata={
+            "help": "The batch size to use when computing the passages embeddings using the DPR context encoder."
+        },
+    )
+
+
+@dataclass
+class IndexHnswArguments:
+    d: int = field(
+        default=768,
+        metadata={"help": "The dimension of the embeddings to pass to the HNSW Faiss index."},
+    )
+    m: int = field(
+        default=128,
+        metadata={
+            "help": (
+                "The number of bi-directional links created for every new element during the HNSW index construction."
+            )
+        },
+    )
+
+
+if __name__ == "__main__":
+    logging.basicConfig(level=logging.WARNING)
+    logger.setLevel(logging.INFO)
+
+    parser = HfArgumentParser((RagExampleArguments, ProcessingArguments, IndexHnswArguments))
+    rag_example_args, processing_args, index_hnsw_args = parser.parse_args_into_dataclasses()
+    with TemporaryDirectory() as tmp_dir:
+        rag_example_args.output_dir = rag_example_args.output_dir or tmp_dir
+        main(rag_example_args, processing_args, index_hnsw_args)

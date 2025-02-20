@@ -1,0 +1,11 @@
+from transformers import DPRContextEncoder, DPRContextEncoderTokenizer
+from torch import tensor
+
+test_ids = tensor([[ 101, 7592,  102, 2023, 2003, 2026, 2684,  102]])
+
+tokenizer = DPRContextEncoderTokenizer.from_pretrained("facebook/dpr-ctx_encoder-multiset-base")
+model = DPRContextEncoder.from_pretrained("facebook/dpr-ctx_encoder-multiset-base")
+input_ids = tokenizer("Hello, is my dog cute ?", return_tensors="pt")["input_ids"]
+embeddings = model(test_ids, return_dict=True).pooler_output
+print(embeddings)
+
