@@ -1,24 +1,3 @@
-""" from datasets import Dataset
-from transformers import AutoTokenizer, RagRetriever, RagModel
-import torch
-
-dataset = Dataset.load_from_disk("/Users/Samuel/Desktop/SAMUEL MacBook/Samuel Yale/Courses/Thesis/Datasets/tests/train")
-
-tokenizer = AutoTokenizer.from_pretrained("facebook/rag-token-base")
-
-retriever = RagRetriever.from_pretrained("facebook/rag-token-base", dataset=dataset, use_dummy_dataset=False)
-
-retriever.index.index_data(dataset)
-                           
-model = RagModel.from_pretrained("facebook/rag-token-base", retriever=retriever)
-
-query = "Who is the child of Henry?"
-inputs = tokenizer(query, return_tensors='pt')
-
-with torch.no_grad():
-    outputs = model(input_ids=inputs["input_ids"]) """
-
-
 # From https://github.com/huggingface/transformers/blob/main/examples/research_projects/rag/use_own_knowledge_dataset.py
 
 import logging
